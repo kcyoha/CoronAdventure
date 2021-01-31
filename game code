@@ -1,0 +1,214 @@
+import random
+
+#Prints a welcome message to the player at the start of the game.
+def print_introduction():
+    message = """
+    Hello and welcome to CoronAdventure, you are a nurse and your goal is to 
+    deliver a Covid-19 Vaccine to a nursing home in your town. You will need 
+    to collect gloves and a mask to get into the nursing home. Deliver the 
+    vaccine before the next day and don't get infected. Good luck!
+    """
+    print(message)
+
+# Helper function that generates a random number between 1 and 3.
+def generate_random():
+    randNumber = random.randint(1,3)
+    return randNumber
+
+# Initializes a player dictionary. The player starts with $2 in the laboratory.
+def player_status():
+    player_status = {"game status": "playing", "Location": "Laboratory", 
+                     "mask":False, "money": "$2", "gloves": False}
+    return player_status
+
+def print_player_status(player):
+    print("You are currently at the: " , player["Location"])
+    if player["mask"] == True: 
+        print("You have a mask.")
+    if player["gloves"] == True: 
+        print("You have gloves.")
+    if player["money"] == "$2": 
+        print("You have $2")
+    if player["money"] == "$5": 
+        print("You have $5")
+        
+# Sets up the actions available to each player depending on their location 
+# and previous action.
+def options(player_dictionary):
+    if player_dictionary["Location"] == "Laboratory":
+        return ["Pharmacy", "Movie Theater", "Grocery Store"]
+    elif player_dictionary["Location"] == "Pharmacy":
+        return ["Inside Pharmacy", "Laboratory", "Help old Lady"]
+    elif player_dictionary["Location"] == "Help old lady":
+        if player_dictionary["Get_free_mask"] == False:
+            return ["Laboratory", "Pharmacy"]
+        else: 
+            return ["Accept Money"]
+    elif player_dictionary["Location"] == "Inside Pharmacy":
+        if player_dictionary["mask"] == False:
+            return ["Laboratory"]
+        else:
+            return ["Buy gloves", "Laboratory"]
+    elif player_dictionary["Location"] == "Movie Theater":
+        return ["Laboratory", "Nursing Home", "Watch Free Movie"]
+    elif player_dictionary["Location"] == "Grocery Store":
+        return ["Laboratory", "Inside Grocery Store", "Get Free Mask"]
+    elif player_dictionary["Location"] == "Get Free Mask":
+        return ["Inside Grocery Store", "Laboratory"]
+    elif player_dictionary["Location"] == "Inside Grocery Store":
+        if player_dictionary["mask"] == False:
+            return ["Laboratory"]
+        else:
+            return ["buy coffee", "Laboratory"]
+    elif player_dictionary["Location"] == "Buy gloves":
+        return ["Pharmacy"]
+    elif player_dictionary["Location"] == "Nursing Home":
+        if player_dictionary["mask"] & player_dictionary["gloves"] == True:
+            return ["Movie Theater", "Inside Nursing Home"]
+        else:
+            return ["Movie Theater"]
+
+# Prints out the actions the player has to choose from.
+def print_options(options):
+    print("\r\n Your options are: ")
+    for option in options:
+        print("" + option)
+    print ("Quit")
+    
+# Allows the user to choose what action they want to do.
+def user_choice(options):
+    valid_choice = False
+    choice = ""
+    while valid_choice == False:
+        choice = input("Please type your choice: ")
+        if choice in options or choice == 'Quit': 
+            valid_choice = True
+        else: 
+            print("That was not a valid option. Please try again.")
+    return choice
+
+# Updates the player's location and the objects they have depending on their 
+# actions.
+def update_dictionary(player_choice, player_dictionary):
+    update = None
+    
+    if player_choice == "Quit":
+        update = {"game status": "Quit"}
+    
+    elif player_choice == "buy coffee":
+        update = {"game status": "Lost"}
+        print("You decide to buy some coffee because you are thirsty.")
+    
+    elif player_choice == "Help old Lady":
+        print("""An old lady dropped her purse and can't pick it up. 
+              You decide to help her. She was so thankful she gave you $3""")
+        update = {"money": "$5"}
+    
+    elif player_dictionary['Location'] == "Inside Grocery Store":
+        if player_dictionary['mask'] == False:
+            covid_number = generate_random()
+            if covid_number != 1:
+                update = {"game status": "Lost"}
+                print(""""You became infected with Covid because you went 
+                      into the Grocery Store without a mask.""")
+            else:
+                print("""You are lucky, you did not get infected with Covid. 
+                      However, you should really wear a mask. You step back
+                      outside the Grocery Store.""")
+        
+    elif player_choice == "Inside Pharmacy":
+        update = {"Location": "Inside Pharmacy"}
+        if player_dictionary['mask'] == False:
+            covid_number = generate_random()
+            if covid_number != 1:
+                update = {"game status": "Lost"}
+                print(""""You became infected with Covid because you went into 
+                      the Pharmacy without a mask.""")
+            else: 
+                print("""You are lucky, you did not get infected with Covid. 
+                      However, you should really wear a mask. You step back 
+                      outside the Pharmacy.""")
+            
+    
+    elif player_choice == "Accept Money":       
+        update = {"money": "$5"}
+        print("""The old lady was so thanful for your help that she gave 
+              you $3 as a reward!""")
+        
+    
+    elif player_choice == "Watch Free Movie":
+        update = {"game status": "Lost"}
+        print(""""You spent too much time at the movies and it is now too late 
+              to deliver the vaccines.""")
+    
+    elif player_choice == "Get Free Mask":
+        update = {"Location": "Get Free Mask"}
+        player_dictionary['mask'] = True
+        print("""You have picked up a free mask. Good job protecting 
+              yourself and others from Covid-19!""")
+    
+    elif player_choice == "Buy gloves":
+        if player_dictionary["money"] == "$5":
+            update = {"Location": "Buy gloves"}
+            player_dictionary["money"] = "$0"        
+            player_dictionary['gloves'] = True
+            print("""You have bought some gloves. Good job protecting 
+              yourself and others from Covid-19!""")
+        else: 
+            print("You do not have enough money to buy gloves.")
+    
+    elif player_choice == "Inside Nursing Home":
+        update = {"game status": "Won"}
+    
+    else:
+        update = {"Location": player_choice}
+    
+    if update is not None:
+        player_dictionary.update(update)
+
+# Helper function that prints a message to the player when they are given the 
+# option to buy gloves.
+'''
+def get_gloves(player_dictionary):
+    if player_dictionary["Location"] == "Buy gloves":
+        if player_dictionary["money"] == "$5":
+            print(""""You have bought gloves. Congratulations! You can 
+                  now give the vaccine to the Nursing Home.""")
+            return {"gloves": True}
+        else:
+            print("""You don't have enough money. Try to find some more 
+                  to buy the gloves.""")
+            return None
+    else:
+        return None
+    
+    '''
+    
+# Prints an ending message to the player.
+def print_ending(player):
+    if player["game status"] == "Lost":
+        print("""You have lost and failed to bring the vaccine to the nursing 
+              home. Better luck next time!""")
+    if player["game status"] == "Quit":
+        print("You have quit the game.")
+    if player["game status"] == "Won": 
+        print("""Good work! You delivered the vaccines to the nursing home. 
+              Everyone there thanks you for helping them.""")
+    
+    print("")
+    
+# Main function that calls all of the other functions.
+def main():
+    print_introduction()
+    player = player_status()
+    while player["game status"] == "playing": 
+        print_player_status(player)
+        player_options = options(player)
+        print_options(player_options)
+        player_choice = user_choice(player_options)
+        update_dictionary(player_choice, player)
+        print_ending(player)
+        
+
+if __name__ == "__main__":
+    main()
